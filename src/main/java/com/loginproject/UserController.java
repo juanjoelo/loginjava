@@ -3,6 +3,8 @@ package com.loginproject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.Optional;
 
 import com.loginproject.UserDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +46,57 @@ public class UserController {
             return ResponseEntity.ok("Bienvenido " + foundUser.getUsername());
         } else {
             return ResponseEntity.status(401).body("Credenciales incorrectas");
+        }
+    }
+
+    @GetMapping("/{id}")
+public ResponseEntity<?> getUserById(@PathVariable Long id) {
+    Optional<User> user = userService.findUserById(id);
+    if (user.isPresent()) {
+        return ResponseEntity.ok(user.get());
+    } else {
+        return ResponseEntity.status(404).body("Usuario no encontrado");
+    }
+}
+
+    @GetMapping
+    public ResponseEntity<List<User>> getAllUsers() {
+        List<User> users = userService.findAllUsers();
+        return ResponseEntity.ok(users);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
+        Optional<User> optionalUser = userService.findUserById(id);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setUsername(userDTO.getUsername());
+            user.setPassword(userDTO.getPassword());
+            user.setEmail(userDTO.getEmail());
+            User updatedUser = userService.saveUser(user);
+            return ResponseEntity.ok(updatedUser);
+        } else {
+            return ResponseEntity.status(404).body("Usuario no encontrado");
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        try {
+            userService.deleteUserById(id);
+            return ResponseEntity.ok().body("Usuario eliminado con éxito");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error al eliminar el usuario: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/admin/login")
+    public ResponseEntity<?> adminLogin(@RequestBody UserDTO userDTO) {
+        if ("administrador".equals(userDTO.getUsername()) && "123456".equals(userDTO.getPassword())) {
+            List<User> users = userService.findAllUsers();
+            return ResponseEntity.ok(users);
+        } else {
+            return ResponseEntity.status(401).body("Credenciales de administrador incorrectas");
         }
     }
 }

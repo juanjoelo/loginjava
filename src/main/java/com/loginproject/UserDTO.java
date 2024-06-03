@@ -5,6 +5,7 @@ public class UserDTO {
     private String username;
     private String password;
     private String email;
+    private boolean isAdmin;
 
     // Constructor sin argumentos
     public UserDTO() {
